@@ -1,12 +1,37 @@
 import streamlit as st
-from PIL import Image
+import bcrypt
 
-st.title("Upload e visualização de imagem")
+# Simula banco de dados de usuários
+users_db = {
+    "medico@exemplo.com": bcrypt.hashpw("senha123".encode(), bcrypt.gensalt())
+}
 
-uploaded_file = st.file_uploader("Escolha uma imagem", type=["png", "jpg", "jpeg"])
+def login(email, password):
+    if email in users_db:
+        hashed = users_db[email]
+        if bcrypt.checkpw(password.encode(), hashed):
+            return True
+    return False
 
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Imagem carregada", use_container_width=True)
-else:
-    st.write("Aguardando upload...")
+def main():
+    st.title("Login simples")
+
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        email = st.text_input("Email")
+        password = st.text_input("Senha", type="password")
+        if st.button("Entrar"):
+            if login(email, password):
+                st.session_state.logged_in = True
+                st.success("Logado com sucesso!")
+            else:
+                st.error("Email ou senha incorretos.")
+    else:
+        st.write("Bem-vindo ao sistema!")
+        if st.button("Sair"):
+            st.session_state.logged_in = False
+
+if __name__ == "__main__":
+    main()
